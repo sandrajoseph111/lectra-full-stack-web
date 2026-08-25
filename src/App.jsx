@@ -4,14 +4,36 @@ import "./App.css";
 function App() {
   const [url, setUrl] = useState("");
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!url.trim()) {
-      alert("Please enter a YouTube lecture link.");
-      return;
+        alert("Please enter a YouTube lecture link.");
+        return;
     }
 
-    alert("Lecture link received! AI generation will be connected next.");
-  };
+    try {
+        const response = await fetch("http://localhost:5000/api/generate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                youtubeUrl: url
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
+            console.log("Backend response:", data);
+        } else {
+            alert(data.message);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Could not connect to Lectra backend.");
+    }
+};
 
   return (
     <div className="app">
