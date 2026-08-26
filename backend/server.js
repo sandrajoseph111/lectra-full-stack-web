@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const { fetchTranscript } = require("youtube-transcript");
 
 const app = express();
 
@@ -12,8 +13,7 @@ app.get("/", (req, res) => {
     });
 });
 
-// Test API for lecture URL
-app.post("/api/generate", (req, res) => {
+app.post("/api/generate", async (req, res) => {
     const { youtubeUrl } = req.body;
 
     if (!youtubeUrl) {
@@ -23,13 +23,31 @@ app.post("/api/generate", (req, res) => {
         });
     }
 
-    console.log("Received YouTube URL:", youtubeUrl);
+    try {
+        console.log("Fetching transcript...");
 
-    res.json({
-        success: true,
-        message: "Lecture URL received successfully!",
-        youtubeUrl: youtubeUrl
-    });
+        const transcript = await fetchTranscript(youtubeUrl);
+
+        const text = transcript
+            .map(item => item.text)
+            .join(" ");
+
+        console.log("Transcript received successfully.");
+
+        res.json({
+            success: true,
+            message: "Transcript extracted successfully!",
+            transcript: text
+        });
+
+    } catch (error) {
+        console.error("Transcript error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Could not extract transcript from this video."
+        });
+    }
 });
 
 const PORT = 5000;
