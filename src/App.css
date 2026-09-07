@@ -14,7 +14,9 @@ body {
   min-height: 100vh;
 }
 
-/* Navbar */
+/* =========================
+   NAVBAR
+========================= */
 
 .navbar {
   height: 70px;
@@ -24,6 +26,9 @@ body {
   align-items: center;
   background: white;
   border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .logo {
@@ -61,7 +66,9 @@ body {
   color: #4f46e5;
 }
 
-/* Hero */
+/* =========================
+   HERO
+========================= */
 
 .hero {
   min-height: 600px;
@@ -70,6 +77,10 @@ body {
   align-items: center;
   text-align: center;
   padding: 70px 20px;
+  background:
+    radial-gradient(circle at top left, #eef2ff, transparent 40%),
+    radial-gradient(circle at bottom right, #e0e7ff, transparent 40%),
+    #f8f9ff;
 }
 
 .hero-content {
@@ -106,7 +117,9 @@ body {
   margin: 0 auto 35px;
 }
 
-/* Input */
+/* =========================
+   INPUT
+========================= */
 
 .input-container {
   max-width: 700px;
@@ -135,10 +148,18 @@ body {
   color: white;
   font-weight: bold;
   cursor: pointer;
+  transition: 0.3s;
 }
 
 .input-container button:hover {
   background: #4338ca;
+  transform: translateY(-1px);
+}
+
+.input-container button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .input-note {
@@ -146,10 +167,137 @@ body {
   margin-top: 15px !important;
 }
 
-/* Features */
+/* =========================
+   LOADING
+========================= */
+
+.results {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 70px 20px;
+}
+
+.results > h2 {
+  text-align: center;
+  font-size: 30px;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.results > p {
+  text-align: center;
+  color: #6b7280;
+}
+
+/* =========================
+   RESULT CARDS
+========================= */
+
+.result-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+.result-card h2 {
+  font-size: 27px;
+  color: #111827;
+  margin-bottom: 20px;
+}
+
+.result-card > p {
+  color: #4b5563;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+/* =========================
+   FLASHCARDS
+========================= */
+
+.flashcard {
+  background: #f8f9ff;
+  border: 1px solid #e0e7ff;
+  border-left: 5px solid #4f46e5;
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 18px;
+  transition: 0.3s;
+}
+
+.flashcard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.12);
+}
+
+.flashcard h3 {
+  font-size: 17px;
+  line-height: 1.6;
+  color: #1f2937;
+  margin-bottom: 10px;
+}
+
+.flashcard p {
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.flashcard strong {
+  color: #4f46e5;
+}
+
+/* =========================
+   QUIZ
+========================= */
+
+.quiz-card {
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.quiz-card h3 {
+  font-size: 17px;
+  line-height: 1.6;
+  margin-bottom: 15px;
+  color: #111827;
+}
+
+.quiz-card ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 15px;
+}
+
+.quiz-card li {
+  padding: 11px 15px;
+  margin-bottom: 8px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  color: #374151;
+}
+
+.quiz-card p {
+  color: #374151;
+  margin-top: 12px;
+}
+
+.quiz-card strong {
+  color: #4f46e5;
+}
+
+/* =========================
+   FEATURES
+========================= */
 
 .features {
-  padding: 70px 8%;
+  padding: 80px 8%;
   background: white;
   text-align: center;
 }
@@ -157,6 +305,7 @@ body {
 .features h2 {
   font-size: 32px;
   margin-bottom: 45px;
+  color: #111827;
 }
 
 .feature-container {
@@ -173,6 +322,12 @@ body {
   border-radius: 16px;
   background: #fafafa;
   text-align: left;
+  transition: 0.3s;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
 }
 
 .feature-icon {
@@ -190,7 +345,9 @@ body {
   line-height: 1.6;
 }
 
-/* Footer */
+/* =========================
+   FOOTER
+========================= */
 
 footer {
   text-align: center;
@@ -199,15 +356,22 @@ footer {
   color: white;
 }
 
-/* Responsive */
+/* =========================
+   RESPONSIVE
+========================= */
 
 @media (max-width: 700px) {
+
   .navbar {
     padding: 0 5%;
   }
 
   .nav-links {
     display: none;
+  }
+
+  .hero {
+    padding: 50px 20px;
   }
 
   .hero h1 {
@@ -222,4 +386,45 @@ footer {
   .input-container button {
     padding: 14px;
   }
+
+  .results {
+    padding: 40px 15px;
+  }
+
+  .result-card {
+    padding: 20px;
+  }
+
+  .features {
+    padding: 50px 20px;
+  }
+}
+/* Ensure the parent app container allows fixed positioning */
+.app {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  background-color: #f8fafc; /* Adjust to match your theme */
+}
+
+/* Antigravity background container */
+.antigravity-layer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Base styling for interactive components to stand above background */
+.navbar,
+.hero,
+.results,
+.features,
+footer {
+  position: relative;
+  z-index: 10;
 }
