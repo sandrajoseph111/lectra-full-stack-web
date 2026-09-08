@@ -14,6 +14,7 @@ function App() {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
   const [quizFinished, setQuizFinished] = useState(false);
+  const [activeTab, setActiveTab] = useState("summary");
 
   const handleGenerate = async () => {
     if (!url.trim()) {
@@ -33,6 +34,7 @@ function App() {
       setQuizSubmitted(false);
       setQuizScore(0);
       setQuizFinished(false);
+      setActiveTab("summary");
 
       // Step 1: Get YouTube transcript
       const transcriptResponse = await fetch(
@@ -210,110 +212,242 @@ function App() {
       )}
 
       {/* Study Kit Results */}
-      {studyKit && !loading && (
-        <section className="results">
-          {/* Summary */}
-          <div className="result-card">
-            <h2>📝 Lecture Summary</h2>
-            <p>{studyKit.summary}</p>
-          </div>
+{studyKit && !loading && (
+  <section className="results">
 
-          {/* Interactive Flashcards */}
-<div className="result-card flashcard-section">
-  <div className="flashcard-header">
-    <div className="section-title">
-      <span className="title-icon">🃏</span>
-      <h2>AI Flashcards</h2>
-    </div>
-    <span className="badge-counter">
-      {currentCard + 1} / {studyKit.flashcards?.length || 0}
-    </span>
-  </div>
+    <h2>📚 Your Study Kit</h2>
 
-  {studyKit.flashcards?.length > 0 && (
-    <div className="flashcard-wrapper">
-      {/* 3D Flip Card Container */}
-      <div 
-        className={`flip-card ${showAnswer ? "flipped" : ""}`}
-        onClick={() => setShowAnswer(!showAnswer)}
+    <p>
+      Choose a section below to start revising.
+    </p>
+
+    {/* Tabs */}
+    <div className="study-tabs">
+
+      <button
+        className={activeTab === "summary" ? "active-tab" : ""}
+        onClick={() => setActiveTab("summary")}
       >
-        <div className="flip-card-inner">
-          {/* Front Side */}
-          <div className="flip-card-front">
-            <span className="card-label question-label">Question</span>
-            <h3>{studyKit.flashcards[currentCard].question}</h3>
-            <p className="hint-text">Click card or button to reveal answer</p>
-          </div>
+        📝 Summary
+      </button>
 
-          {/* Back Side */}
-          <div className="flip-card-back">
-            <span className="card-label answer-label">Answer</span>
-            <p className="answer-text">{studyKit.flashcards[currentCard].answer}</p>
-            <p className="hint-text">Click card to view question</p>
-          </div>
-        </div>
+      <button
+        className={activeTab === "flashcards" ? "active-tab" : ""}
+        onClick={() => setActiveTab("flashcards")}
+      >
+        🃏 Flashcards
+      </button>
+
+      <button
+        className={activeTab === "quiz" ? "active-tab" : ""}
+        onClick={() => setActiveTab("quiz")}
+      >
+        ❓ Quiz
+      </button>
+
+    </div>
+
+
+    {/* =========================
+    SUMMARY TAB
+========================= */}
+{activeTab === "summary" && (
+  <div className="result-card summary-section">
+    <div className="summary-header">
+      <div className="summary-title-wrapper">
+        <span className="summary-badge">Overview</span>
+        <h2>📝 Key Takeaways</h2>
       </div>
 
-      {/* Control Actions */}
-      <div className="flashcard-controls">
-        <button
-          className="nav-btn"
-          disabled={currentCard === 0}
-          onClick={() => {
-            setCurrentCard((prev) => prev - 1);
-            setShowAnswer(false);
-          }}
-        >
-          ← Previous
-        </button>
+      <button
+        className="copy-summary-btn"
+        onClick={() => {
+          navigator.clipboard.writeText(studyKit.summary);
+          alert("Summary copied to clipboard!");
+        }}
+      >
+        📋 Copy
+      </button>
+    </div>
 
-        <button
-          className="flip-toggle-btn"
+    <div className="summary-content">
+      {/* Splits multi-line or long paragraph content cleanly into paragraphs */}
+      {studyKit.summary.split("\n\n").map((para, idx) => (
+        <p key={idx} className="summary-text">
+          {para.split(/(`[^`]+`)/g).map((chunk, i) =>
+            chunk.startsWith("`") && chunk.endsWith("`") ? (
+              <code key={i} className="inline-code">
+                {chunk.slice(1, -1)}
+              </code>
+            ) : (
+              chunk
+            )
+          )}
+        </p>
+      ))}
+    </div>
+  </div>
+)}
+
+
+    {/* =========================
+        FLASHCARDS TAB
+    ========================= */}
+
+   
+{activeTab === "flashcards" && (
+  <div className="result-card flashcard-section">
+    <div className="flashcard-header">
+      <div className="section-title">
+        <h2>🃏 AI Flashcards</h2>
+      </div>
+      <span className="badge-counter">
+        {currentCard + 1} / {studyKit.flashcards?.length || 0}
+      </span>
+    </div>
+
+    {studyKit.flashcards?.length > 0 && (
+      <div className="flashcard-wrapper">
+        {/* Progress Bar */}
+        <div className="flashcard-progress-bar">
+          <div
+            className="flashcard-progress-fill"
+            style={{
+              width: `${((currentCard + 1) / studyKit.flashcards.length) * 100}%`,
+            }}
+          />
+        </div>
+
+        {/* 3D Flip Card */}
+        <div
+          className={`flip-card ${showAnswer ? "flipped" : ""}`}
           onClick={() => setShowAnswer(!showAnswer)}
         >
-          {showAnswer ? "Show Question" : "Reveal Answer"}
-        </button>
+          <div className="flip-card-inner">
+            {/* Front Side: Question */}
+            <div className="flip-card-front">
+              <div className="card-top-bar">
+                <span className="card-label question-label">Question</span>
+                <span className="card-index-chip">#{currentCard + 1}</span>
+              </div>
+              <h3 className="card-question-text">
+                {studyKit.flashcards[currentCard].question}
+              </h3>
+              <p className="hint-text">💡 Click anywhere or tap Flip to view answer</p>
+            </div>
 
-        <button
-          className="nav-btn"
-          disabled={currentCard === studyKit.flashcards.length - 1}
-          onClick={() => {
-            setCurrentCard((prev) => prev + 1);
-            setShowAnswer(false);
-          }}
-        >
-          Next →
-        </button>
-      </div>
-    </div>
-  )}
-</div>
-
-          {/* Interactive Quiz */}
-          <div className="result-card quiz-section">
-            <h2>❓ AI Quiz</h2>
-
-            {!quizFinished && studyKit.quiz?.length > 0 && (
-              <div className="interactive-quiz">
-                <p className="quiz-progress">
-                  Question {currentQuiz + 1} of {studyKit.quiz.length}
+            {/* Back Side: Answer */}
+            <div className="flip-card-back">
+              <div className="card-top-bar">
+                <span className="card-label answer-label">Answer</span>
+                <span className="card-index-chip">#{currentCard + 1}</span>
+              </div>
+              <div className="answer-wrapper">
+                <p className="answer-text">
+                  {studyKit.flashcards[currentCard].answer}
                 </p>
+              </div>
+              <p className="hint-text">🔄 Click to return to question</p>
+            </div>
+          </div>
+        </div>
 
-                <h3>{studyKit.quiz[currentQuiz].question}</h3>
+        {/* Controls */}
+        <div className="flashcard-controls">
+          <button
+            className="nav-btn"
+            disabled={currentCard === 0}
+            onClick={() => {
+              setCurrentCard((prev) => prev - 1);
+              setShowAnswer(false);
+            }}
+          >
+            ← Previous
+          </button>
+
+          <button
+            className="flip-toggle-btn"
+            onClick={() => setShowAnswer(!showAnswer)}
+          >
+            {showAnswer ? "↩ Show Question" : "✨ Flip to Reveal"}
+          </button>
+
+          <button
+            className="nav-btn"
+            disabled={currentCard === studyKit.flashcards.length - 1}
+            onClick={() => {
+              setCurrentCard((prev) => prev + 1);
+              setShowAnswer(false);
+            }}
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+)}
+
+
+    {/* =========================
+        QUIZ TAB
+    ========================= */}
+
+    {activeTab === "quiz" && (
+      <div className="result-card quiz-section">
+
+        <h2>❓ AI Quiz</h2>
+
+        {!quizFinished &&
+          studyKit.quiz?.length > 0 && (
+            <>
+
+              <p className="quiz-progress">
+                Question {currentQuiz + 1} of{" "}
+                {studyKit.quiz.length}
+              </p>
+
+
+              <div className="interactive-quiz">
+
+                <h3>
+                  {studyKit.quiz[currentQuiz].question}
+                </h3>
+
 
                 <div className="quiz-options">
-                  {studyKit.quiz[currentQuiz].options.map((option, index) => {
-                    const isSelected = selectedOption === option;
+
+                  {studyKit.quiz[
+                    currentQuiz
+                  ].options.map((option, index) => {
+
+                    const isSelected =
+                      selectedOption === option;
+
                     const isCorrect =
-                      option === studyKit.quiz[currentQuiz].answer;
+                      option ===
+                      studyKit.quiz[currentQuiz].answer;
 
                     let optionClass = "";
-                    if (quizSubmitted && isCorrect) {
-                      optionClass = "correct-option";
-                    } else if (quizSubmitted && isSelected && !isCorrect) {
-                      optionClass = "wrong-option";
+
+                    if (
+                      quizSubmitted &&
+                      isCorrect
+                    ) {
+                      optionClass =
+                        "correct-option";
+
+                    } else if (
+                      quizSubmitted &&
+                      isSelected &&
+                      !isCorrect
+                    ) {
+                      optionClass =
+                        "wrong-option";
+
                     } else if (isSelected) {
-                      optionClass = "selected-option";
+                      optionClass =
+                        "selected-option";
                     }
 
                     return (
@@ -327,12 +461,22 @@ function App() {
                         }}
                         disabled={quizSubmitted}
                       >
-                        <span>{String.fromCharCode(65 + index)}</span>
+
+                        <span>
+                          {String.fromCharCode(
+                            65 + index
+                          )}
+                        </span>
+
                         {option}
+
                       </button>
                     );
+
                   })}
+
                 </div>
+
 
                 {!quizSubmitted && (
                   <button
@@ -343,49 +487,84 @@ function App() {
                   </button>
                 )}
 
+
                 {quizSubmitted && (
                   <div className="quiz-feedback">
-                    {selectedOption === studyKit.quiz[currentQuiz].answer ? (
-                      <p className="correct-feedback">✅ Correct!</p>
+
+                    {selectedOption ===
+                    studyKit.quiz[currentQuiz].answer ? (
+                      <p className="correct-feedback">
+                        ✅ Correct!
+                      </p>
                     ) : (
                       <p className="wrong-feedback">
                         ❌ Incorrect!
                         <br />
-                        Correct answer: {studyKit.quiz[currentQuiz].answer}
+                        Correct answer:{" "}
+                        {
+                          studyKit.quiz[currentQuiz]
+                            .answer
+                        }
                       </p>
                     )}
 
-                    <button className="next-quiz-btn" onClick={handleNextQuiz}>
-                      {currentQuiz === studyKit.quiz.length - 1
+
+                    <button
+                      className="next-quiz-btn"
+                      onClick={handleNextQuiz}
+                    >
+                      {currentQuiz ===
+                      studyKit.quiz.length - 1
                         ? "Finish Quiz"
                         : "Next Question →"}
                     </button>
+
                   </div>
                 )}
+
               </div>
-            )}
 
-            {/* Quiz Result */}
-            {quizFinished && (
-              <div className="quiz-result">
-                <div className="score-circle">
-                  {quizScore}/{studyKit.quiz.length}
-                </div>
+            </>
+          )}
 
-                <h3>🎉 Quiz Completed!</h3>
 
-                <p>
-                  You scored <strong>{quizScore}</strong> out of{" "}
-                  <strong>{studyKit.quiz.length}</strong>.
-                </p>
+        {/* Quiz Result */}
 
-                <button className="restart-quiz-btn" onClick={restartQuiz}>
-                  🔄 Restart Quiz
-                </button>
-              </div>
-            )}
+        {quizFinished && (
+          <div className="quiz-result">
+
+            <div className="score-circle">
+              {quizScore}/{studyKit.quiz.length}
+            </div>
+
+            <h3>
+              🎉 Quiz Completed!
+            </h3>
+
+            <p>
+              You scored{" "}
+              <strong>{quizScore}</strong>{" "}
+              out of{" "}
+              <strong>
+                {studyKit.quiz.length}
+              </strong>.
+            </p>
+
+            <button
+              className="restart-quiz-btn"
+              onClick={restartQuiz}
+            >
+              🔄 Restart Quiz
+            </button>
+
           </div>
-        </section>
+        )}
+
+      </div>
+    )}
+
+  </section>
+
       )}
 
       {/* Features */}
