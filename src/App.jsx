@@ -148,6 +148,56 @@ function App() {
     setQuizFinished(false);
   };
 
+  const downloadStudyKit = () => {
+  if (!studyKit) return;
+
+  let content = `LECTRA — STUDY KIT\n\n`;
+
+  content += `LECTURE SUMMARY\n`;
+  content += `${studyKit.summary}\n\n`;
+
+  content += `FLASHCARDS\n`;
+  content +=
+    studyKit.flashcards
+      ?.map(
+        (card, index) =>
+          `${index + 1}. Q: ${card.question}\n   A: ${card.answer}`
+      )
+      .join("\n\n") || "No flashcards available.";
+
+  content += `\n\nQUIZ\n`;
+  content +=
+    studyKit.quiz
+      ?.map(
+        (question, index) =>
+          `${index + 1}. ${question.question}\n` +
+          question.options
+            .map(
+              (option, optionIndex) =>
+                `   ${String.fromCharCode(65 + optionIndex)}. ${option}`
+            )
+            .join("\n") +
+          `\n   Correct Answer: ${question.answer}`
+      )
+      .join("\n\n") || "No quiz questions available.";
+
+  const blob = new Blob([content], {
+    type: "text/plain;charset=utf-8",
+  });
+
+  const downloadUrl = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = downloadUrl;
+  link.download = "lectra-study-kit.txt";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(downloadUrl);
+};
+
   return (
     <div className="app">
       {/* Navbar */}
@@ -215,11 +265,19 @@ function App() {
 {studyKit && !loading && (
   <section className="results">
 
+    <div className="study-kit-header">
+  <div>
     <h2>📚 Your Study Kit</h2>
+    <p>Choose a section below to start revising.</p>
+  </div>
 
-    <p>
-      Choose a section below to start revising.
-    </p>
+  <button
+    className="download-kit-btn"
+    onClick={downloadStudyKit}
+  >
+    📥 Download Study Kit
+  </button>
+</div>
 
     {/* Tabs */}
     <div className="study-tabs">

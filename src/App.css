@@ -1140,3 +1140,55 @@ footer {
   }
 
 }
+/* =========================
+   DOWNLOAD STUDY KIT
+========================= */
+
+.study-kit-header {
+  max-width: 900px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.study-kit-header h2 {
+  font-size: 28px;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.study-kit-header p {
+  color: #6b7280;
+}
+
+.download-kit-btn {
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 7px 16px rgba(79, 70, 229, 0.22);
+  transition: 0.2s ease;
+  white-space: nowrap;
+}
+
+.download-kit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+}
+
+@media (max-width: 700px) {
+  .study-kit-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .download-kit-btn {
+    width: 100%;
+  }
+}
