@@ -2,9 +2,10 @@ import { useState } from "react";
 import "./App.css";
 
 function App() {
-  const [url, setUrl] = useState("");
-  const [studyKit, setStudyKit] = useState(null);
-  const [loading, setLoading] = useState(false);
+const [url, setUrl] = useState("");
+const [studyKit, setStudyKit] = useState(null);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState("");
 
   const [currentCard, setCurrentCard] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -16,9 +17,33 @@ function App() {
   const [quizFinished, setQuizFinished] = useState(false);
   const [activeTab, setActiveTab] = useState("summary");
 
+
+//youtube link validation
+  const isValidYouTubeUrl = (value) => {
+  try {
+    const parsedUrl = new URL(value);
+
+    return (
+      parsedUrl.hostname === "youtube.com" ||
+      parsedUrl.hostname === "www.youtube.com" ||
+      parsedUrl.hostname === "youtu.be" ||
+      parsedUrl.hostname === "www.youtu.be"
+    );
+  } catch {
+    return false;
+  }
+};
+
   const handleGenerate = async () => {
+    setError("");
+
     if (!url.trim()) {
-      alert("Please enter a YouTube lecture link.");
+      setError("Please enter a YouTube lecture link.");
+      return;
+    }
+
+    if (!isValidYouTubeUrl(url.trim())) {
+      setError("Please enter a valid YouTube URL.");
       return;
     }
 
@@ -35,6 +60,11 @@ function App() {
       setQuizScore(0);
       setQuizFinished(false);
       setActiveTab("summary");
+
+
+
+
+      
 
       // Step 1: Get YouTube transcript
       const transcriptResponse = await fetch(
@@ -53,11 +83,13 @@ function App() {
       const transcriptData = await transcriptResponse.json();
 
       if (!transcriptData.success) {
-        alert(transcriptData.message);
-        setLoading(false);
-        return;
-      }
-
+  setError(
+    transcriptData.message ||
+    "Could not extract the transcript from this video."
+  );
+  setLoading(false);
+  return;
+}
       console.log("Transcript received.");
 
       // Step 2: Send transcript to Gemini
@@ -77,10 +109,10 @@ function App() {
       const aiData = await aiResponse.json();
 
       if (!aiData.success) {
-        alert(aiData.error || "Failed to generate study kit.");
-        setLoading(false);
-        return;
-      }
+  setError(aiData.error || "Failed to generate study kit.");
+  setLoading(false);
+  return;
+}
 
       console.log("Gemini response:", aiData);
 
@@ -108,10 +140,12 @@ function App() {
       setStudyKit(result);
       setLoading(false);
     } catch (error) {
-      console.error("Error:", error);
-      alert("Could not connect to Lectra backend.");
-      setLoading(false);
-    }
+  console.error("Error:", error);
+  setError(
+    "Could not connect to Lectra backend. Please make sure the server is running."
+  );
+  setLoading(false);
+}
   };
 
   const handleQuizSubmit = () => {
@@ -243,6 +277,11 @@ function App() {
               {loading ? "Generating..." : "Generate Study Kit"}
             </button>
           </div>
+          {error && (
+  <div className="error-message">
+    ⚠️ {error}
+  </div>
+)}
 
           <p className="input-note">
             📺 Enter a YouTube educational lecture to get started
