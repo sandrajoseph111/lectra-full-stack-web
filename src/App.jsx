@@ -148,6 +148,27 @@ function App() {
     setQuizFinished(false);
   };
 
+  const quizPercentage =
+  studyKit && studyKit.quiz.length > 0
+    ? Math.round((quizScore / studyKit.quiz.length) * 100)
+    : 0;
+
+const getPerformanceMessage = () => {
+  if (quizPercentage >= 80) {
+    return "🏆 Excellent! Great job!";
+  }
+
+  if (quizPercentage >= 60) {
+    return "👏 Good work! Keep it up!";
+  }
+
+  if (quizPercentage >= 40) {
+    return "💪 Keep practicing!";
+  }
+
+  return "📚 Don't give up! Review the lecture and try again.";
+};
+
   const downloadStudyKit = () => {
   if (!studyKit) return;
 
@@ -596,17 +617,23 @@ function App() {
             </div>
 
             <h3>
-              🎉 Quiz Completed!
-            </h3>
+  🎉 Quiz Completed!
+</h3>
 
-            <p>
-              You scored{" "}
-              <strong>{quizScore}</strong>{" "}
-              out of{" "}
-              <strong>
-                {studyKit.quiz.length}
-              </strong>.
-            </p>
+<p>
+  You scored{" "}
+  <strong>{quizScore}</strong>{" "}
+  out of{" "}
+  <strong>{studyKit.quiz.length}</strong>.
+</p>
+
+<div className="quiz-percentage">
+  {quizPercentage}%
+</div>
+
+<p className="performance-message">
+  {getPerformanceMessage()}
+</p>
 
             <button
               className="restart-quiz-btn"

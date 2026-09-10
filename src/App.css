@@ -1192,3 +1192,21 @@ footer {
     width: 100%;
   }
 }
+
+/* =========================
+   QUIZ PERFORMANCE
+========================= */
+
+.quiz-percentage {
+  font-size: 32px;
+  font-weight: 800;
+  color: #4f46e5;
+  margin: 12px 0 6px;
+}
+
+.performance-message {
+  font-size: 16px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
