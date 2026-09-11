@@ -169,6 +169,32 @@ const getPerformanceMessage = () => {
   return "📚 Don't give up! Review the lecture and try again.";
 };
 
+
+const saveStudyKit = () => {
+  if (!studyKit) {
+    return;
+  }
+
+  const savedKits =
+    JSON.parse(localStorage.getItem("lectraStudyKits")) || [];
+
+  const newKit = {
+    id: Date.now(),
+    title: "Lectra Study Kit",
+    savedAt: new Date().toLocaleString(),
+    studyKit: studyKit,
+  };
+
+  savedKits.push(newKit);
+
+  localStorage.setItem(
+    "lectraStudyKits",
+    JSON.stringify(savedKits)
+  );
+
+  alert("Study kit saved successfully! 💾");
+};
+
   const downloadStudyKit = () => {
   if (!studyKit) return;
 
@@ -292,13 +318,29 @@ const getPerformanceMessage = () => {
     <p>Choose a section below to start revising.</p>
   </div>
 
+  <div className="study-kit-actions">
+
   <button
-    className="download-kit-btn"
+    className="save-study-kit-btn"
+    onClick={saveStudyKit}
+  >
+    💾 Save Study Kit
+  </button>
+
+  <button
+    className="download-btn"
     onClick={downloadStudyKit}
   >
     📥 Download Study Kit
   </button>
+
 </div>
+</div>
+
+
+
+
+
 
     {/* Tabs */}
     <div className="study-tabs">
