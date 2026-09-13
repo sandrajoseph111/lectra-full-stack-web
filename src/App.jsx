@@ -16,6 +16,11 @@ function App() {
   const [quizFinished, setQuizFinished] = useState(false);
   const [activeTab, setActiveTab] = useState("summary");
 
+
+  const [savedKits, setSavedKits] = useState(() => {
+  return JSON.parse(localStorage.getItem("lectraStudyKits")) || [];
+});
+
   const handleGenerate = async () => {
     if (!url.trim()) {
       alert("Please enter a YouTube lecture link.");
@@ -195,6 +200,28 @@ const saveStudyKit = () => {
   alert("Study kit saved successfully! 💾");
 };
 
+        //viewSavedKit
+
+const viewSavedKit = (kit) => {
+  setStudyKit(kit.studyKit);
+
+  setCurrentCard(0);
+  setShowAnswer(false);
+
+  setCurrentQuiz(0);
+  setSelectedOption(null);
+  setQuizSubmitted(false);
+  setQuizScore(0);
+  setQuizFinished(false);
+
+  setActiveTab("summary");
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+};
+
   const downloadStudyKit = () => {
   if (!studyKit) return;
 
@@ -307,6 +334,40 @@ const saveStudyKit = () => {
           </p>
         </section>
       )}
+
+             {/* Study History */}
+      <section className="history-section">
+  <div className="history-header">
+    <h2>🕘 Study History</h2>
+    <p>Your saved study kits appear here.</p>
+  </div>
+
+  {savedKits.length === 0 ? (
+    <div className="empty-history">
+      <p>📚 No saved study kits yet.</p>
+      <span>Generate and save a study kit to see it here.</span>
+    </div>
+  ) : (
+    <div className="history-list">
+      {savedKits.map((kit) => (
+        <div className="history-card" key={kit.id}>
+          <div>
+            <h3>📖 {kit.title}</h3>
+            <p>🕒 Saved on {kit.savedAt}</p>
+          </div>
+
+          <button
+  className="view-history-btn"
+  onClick={() => viewSavedKit(kit)}
+>
+  👀 View
+</button>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
+
 
       {/* Study Kit Results */}
 {studyKit && !loading && (
