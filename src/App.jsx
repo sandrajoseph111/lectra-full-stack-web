@@ -1,8 +1,13 @@
 import { useState } from "react";
 import "./App.css";
+import Login from "./Login";
+import Signup from "./Signup";
 
 function App() {
   const [url, setUrl] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [studentName, setStudentName] = useState("");
+  const [showSignup, setShowSignup] = useState(false);
   const [studyKit, setStudyKit] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -272,8 +277,37 @@ const viewSavedKit = (kit) => {
   URL.revokeObjectURL(downloadUrl);
 };
 
+const handleLogout = () => {
+  setIsLoggedIn(false);
+  setStudentName("");
+  setShowSignup(false);
+  setStudyKit(null);
+};
+
+  if (!isLoggedIn) {
+  if (showSignup) {
+    return (
+      <Signup
+        onSignup={(name) => {
+  setIsLoggedIn(true);
+  setStudentName(name);
+}}
+        onShowLogin={() => setShowSignup(false)}
+      />
+    );
+  }
+
   return (
-    <div className="app">
+    <Login
+      onLogin={() => setIsLoggedIn(true)}
+      onShowSignup={() => setShowSignup(true)}
+    />
+  );
+}
+
+
+return (
+  <div className="app">
       {/* Navbar */}
       <nav className="navbar">
         <div className="logo">
@@ -282,10 +316,18 @@ const viewSavedKit = (kit) => {
         </div>
 
         <div className="nav-links">
-          <a href="#home">Home</a>
-          <a href="#features">Features</a>
-          <a href="#about">About</a>
-        </div>
+  <a href="#home">Home</a>
+  <a href="#features">Features</a>
+  <a href="#about">About</a>
+
+  <span className="student-name">
+    👋 {studentName || "Student"}
+  </span>
+
+  <button className="logout-btn" onClick={handleLogout}>
+    Logout
+  </button>
+</div>
       </nav>
 
       {/* Hero Section */}

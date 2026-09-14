@@ -1353,3 +1353,167 @@ footer {
     width: 100%;
   }
 }
+
+/* =========================
+   LOGIN PAGE
+========================= */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 25px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #4f46e5;
+}
+
+.login-logo .logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  font-size: 26px;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+}
+
+.login-card h1 {
+  margin: 0 0 8px;
+  font-size: 30px;
+  color: #1f2937;
+}
+
+.login-subtitle {
+  margin: 0 0 28px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.login-field {
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.login-field label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.login-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.login-field input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.login-btn {
+  width: 100%;
+  border: none;
+  padding: 13px;
+  margin-top: 5px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 7px 16px rgba(79, 70, 229, 0.22);
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+}
+
+.signup-text {
+  margin-top: 22px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.signup-link {
+  border: none;
+  background: none;
+  color: #4f46e5;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+}
+
+.signup-link:hover {
+  text-decoration: underline;
+}
+
+/* Mobile */
+@media (max-width: 500px) {
+  .login-card {
+    padding: 30px 22px;
+  }
+
+  .login-card h1 {
+    font-size: 26px;
+  }
+}
+
+.student-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-left: 10px;
+}
+
+.logout-btn {
+  border: none;
+  padding: 9px 15px;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
