@@ -1,15 +1,120 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const path = require("path");
+
+dotenv.config({
+  path: path.join(__dirname, ".env"),
+});
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const User = require("./models/User");
 const { GoogleGenAI } = require("@google/genai");
 const { fetchTranscript } = require("youtube-transcript");
 
-dotenv.config();
+console.log("MongoDB URI loaded:", !!process.env.MONGODB_URI);
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log("MongoDB connected successfully!");
+  })
+  .catch((error) => {
+    console.error("MongoDB connection failed:", error.message);
+  });
+
+
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+//signup route
+app.post("/api/signup", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: "Please fill in all fields.",
+      });
+    }
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "An account with this email already exists.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+    });
+
+    await user.save();
+
+    res.status(201).json({
+      message: "Account created successfully!",
+      name: user.name,
+    });
+  } catch (error) {
+    console.error("Signup error:", error.message);
+
+    res.status(500).json({
+      message: "Server error during signup.",
+    });
+  }
+});
+
+
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Please enter your email and password.",
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email or password.",
+      });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({
+        message: "Invalid email or password.",
+      });
+    }
+
+    res.status(200).json({
+      message: "Login successful!",
+      name: user.name,
+    });
+  } catch (error) {
+    console.error("Login error:", error.message);
+
+    res.status(500).json({
+      message: "Server error during login.",
+    });
+  }
+});
+
+
+
+
 
 // Gemini AI
 const ai = new GoogleGenAI({
