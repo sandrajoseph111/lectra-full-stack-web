@@ -9,6 +9,7 @@ dotenv.config({
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const User = require("./models/User");
+const StudyKit = require("./models/StudyKit");
 const { GoogleGenAI } = require("@google/genai");
 const { fetchTranscript } = require("youtube-transcript");
 
@@ -72,7 +73,7 @@ app.post("/api/signup", async (req, res) => {
 });
 
 
-
+//login route
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -114,6 +115,63 @@ app.post("/api/login", async (req, res) => {
 
 
 
+//studykit route
+app.post("/api/study-kits", async (req, res) => {
+  try {
+    const { userEmail, title, studyKit } = req.body;
+
+    if (!userEmail || !title || !studyKit) {
+      return res.status(400).json({
+        message: "Missing study kit details.",
+      });
+    }
+
+    const newStudyKit = new StudyKit({
+      userEmail,
+      title,
+      studyKit,
+    });
+
+    await newStudyKit.save();
+
+    res.status(201).json({
+      message: "Study kit saved successfully!",
+      studyKit: newStudyKit,
+    });
+  } catch (error) {
+    console.error("Save study kit error:", error.message);
+
+    res.status(500).json({
+      message: "Server error while saving study kit.",
+    });
+  }
+});
+
+
+app.get("/api/study-kits/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    const studyKits = await StudyKit.find({
+      userEmail: email,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      studyKits,
+    });
+  } catch (error) {
+    console.error("Get study kits error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching study kits.",
+    });
+  }
+});
+
+
+
 
 
 // Gemini AI
@@ -122,12 +180,30 @@ const ai = new GoogleGenAI({
 });
 
 
+// Helper function for retrying on 503 overload errors
+async function callGeminiWithRetry(fn, retries = 3, delay = 2000) {
+  try {
+    return await fn();
+  } catch (error) {
+    if (error?.status === 503 && retries > 0) {
+      console.warn(`Gemini 503 overload. Retrying in ${delay / 1000}s... (${retries} attempts left)`);
+      await new Promise((res) => setTimeout(res, delay));
+      return callGeminiWithRetry(fn, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+}
+
+
+
 // Home route
 app.get("/", (req, res) => {
     res.json({
         message: "Lectra backend is running!"
     });
 });
+
+
 
 
 // Get YouTube transcript
@@ -213,10 +289,17 @@ Lecture transcript:
 ${transcript}
 `;
 
-        const response = await ai.models.generateContent({
-            model: "gemini-3.6-flash",
-            contents: prompt,
-        });
+
+          //gemini modification
+       const response = await callGeminiWithRetry(() =>
+      ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        },
+      })
+    );
 
         const text = response.text;
 
