@@ -181,19 +181,23 @@ const ai = new GoogleGenAI({
 
 
 // Helper function for retrying on 503 overload errors
-async function callGeminiWithRetry(fn, retries = 3, delay = 2000) {
+async function callGeminiWithRetry(fn, retries = 2, delay = 3000) {
   try {
     return await fn();
   } catch (error) {
     if (error?.status === 503 && retries > 0) {
-      console.warn(`Gemini 503 overload. Retrying in ${delay / 1000}s... (${retries} attempts left)`);
+      console.warn(
+        `Gemini 503 overload. Retrying in ${delay / 1000}s... (${retries} attempts left)`
+      );
+
       await new Promise((res) => setTimeout(res, delay));
+
       return callGeminiWithRetry(fn, retries - 1, delay * 2);
     }
+
     throw error;
   }
 }
-
 
 
 // Home route
@@ -291,15 +295,41 @@ ${transcript}
 
 
           //gemini modification
-       const response = await callGeminiWithRetry(() =>
+       let response;
+
+try {
+  // Try Gemini 3.6 Flash first
+  response = await callGeminiWithRetry(() =>
+    ai.models.generateContent({
+      model: "gemini-3.6-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      },
+    })
+  );
+
+} catch (error) {
+  if (error?.status === 503) {
+    console.warn(
+      "Gemini 3.6 Flash is overloaded. Trying Gemini 3.5 Flash-Lite..."
+    );
+
+    // Fallback model
+    response = await callGeminiWithRetry(() =>
       ai.models.generateContent({
-        model: "gemini-3.6-flash",
+        model: "gemini-3.5-flash-lite",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
         },
       })
     );
+
+  } else {
+    throw error;
+  }
+}
 
         const text = response.text;
 
