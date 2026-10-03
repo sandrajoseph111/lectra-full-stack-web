@@ -180,19 +180,36 @@ const ai = new GoogleGenAI({
 });
 
 
-// Helper function for retrying on 503 overload errors
+// Helper function for Gemini errors
 async function callGeminiWithRetry(fn, retries = 2, delay = 3000) {
   try {
     return await fn();
+
   } catch (error) {
+
+    // 429 = quota/rate limit
+    if (error?.status === 429) {
+      console.error("Gemini quota/rate limit reached.");
+
+      // Do NOT retry daily quota exhaustion
+      throw error;
+    }
+
+    // 503 = temporary Gemini overload
     if (error?.status === 503 && retries > 0) {
       console.warn(
-        `Gemini 503 overload. Retrying in ${delay / 1000}s... (${retries} attempts left)`
+        `Gemini 503 overload. Retrying in ${
+          delay / 1000
+        }s... (${retries} attempts left)`
       );
 
       await new Promise((res) => setTimeout(res, delay));
 
-      return callGeminiWithRetry(fn, retries - 1, delay * 2);
+      return callGeminiWithRetry(
+        fn,
+        retries - 1,
+        delay * 2
+      );
     }
 
     throw error;
@@ -338,11 +355,34 @@ try {
             studyKit: text
         });
 
-    } catch (error) {
+        } catch (error) {
         console.error("Gemini error:", error);
 
-        res.status(500).json({
-            error: "Failed to generate study kit"
+        // Gemini quota exhausted
+        if (error?.status === 429) {
+            return res.status(429).json({
+                success: false,
+                error: "Gemini API quota exhausted.",
+                message:
+                    "Lectra has reached the current Gemini API request limit. Please try again after the quota resets."
+            });
+        }
+
+        // Gemini temporarily unavailable
+        if (error?.status === 503) {
+            return res.status(503).json({
+                success: false,
+                error: "Gemini temporarily unavailable.",
+                message:
+                    "Gemini is temporarily overloaded. Please try again in a moment."
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            error: "Failed to generate study kit.",
+            message:
+                "An unexpected error occurred while generating the study kit."
         });
     }
 });
