@@ -28,7 +28,7 @@ mongoose
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 //signup route
 app.post("/api/signup", async (req, res) => {
@@ -217,6 +217,72 @@ async function callGeminiWithRetry(fn, retries = 2, delay = 3000) {
 }
 
 
+
+// Split a long transcript into smaller chunks
+function splitTranscript(text, maxChars = 12000) {
+  const chunks = [];
+
+  for (let i = 0; i < text.length; i += maxChars) {
+    chunks.push(text.slice(i, i + maxChars));
+  }
+
+  return chunks;
+}
+
+
+// Generate a summary for one transcript chunk
+async function summarizeChunk(chunk, chunkNumber, totalChunks) {
+  const prompt = `
+You are an educational AI assistant.
+
+Summarize this part of a lecture clearly and accurately.
+
+This is chunk ${chunkNumber} of ${totalChunks}.
+
+Keep:
+- Important concepts
+- Definitions
+- Key explanations
+- Important examples
+- Important facts
+
+Do not add information that is not present in the transcript.
+
+Return ONLY the summary text.
+
+Lecture chunk:
+${chunk}
+`;
+
+  let response;
+
+  try {
+    response = await callGeminiWithRetry(() =>
+      ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: prompt,
+      })
+    );
+  } catch (error) {
+    if (error?.status === 503) {
+      console.warn(
+        "Gemini 3.6 Flash overloaded while processing chunk. Trying fallback..."
+      );
+
+      response = await callGeminiWithRetry(() =>
+        ai.models.generateContent({
+          model: "gemini-3.5-flash-lite",
+          contents: prompt,
+        })
+      );
+    } else {
+      throw error;
+    }
+  }
+
+  return response.text;
+}
+
 // Home route
 app.get("/", (req, res) => {
     res.json({
@@ -267,20 +333,64 @@ app.post("/api/generate", async (req, res) => {
 
 
 // Generate AI Study Kit
+// Generate AI Study Kit
 app.post("/api/generate-study-kit", async (req, res) => {
-    try {
-        const { transcript } = req.body;
+  try {
+    const { transcript } = req.body;
 
-        if (!transcript) {
-            return res.status(400).json({
-                error: "Transcript is required"
-            });
-        }
+    if (!transcript) {
+      return res.status(400).json({
+        error: "Transcript is required",
+      });
+    }
 
-        const prompt = `
+    console.log(`Transcript characters: ${transcript.length}`);
+
+    let finalTranscript = transcript;
+
+    // ==========================================
+    // LONG VIDEO HANDLING
+    // ==========================================
+
+    const MAX_DIRECT_CHARS = 30000;
+
+    if (transcript.length > MAX_DIRECT_CHARS) {
+      console.log("Long transcript detected.");
+      console.log("Splitting transcript into chunks...");
+
+      const chunks = splitTranscript(transcript, 40000);
+
+      console.log(`Total chunks: ${chunks.length}`);
+
+      const chunkSummaries = [];
+
+      for (let i = 0; i < chunks.length; i++) {
+        console.log(
+          `Processing chunk ${i + 1}/${chunks.length}...`
+        );
+
+        const summary = await summarizeChunk(
+          chunks[i],
+          i + 1,
+          chunks.length
+        );
+
+        chunkSummaries.push(summary);
+      }
+
+      console.log("All chunks processed successfully.");
+
+      finalTranscript = chunkSummaries.join("\n\n");
+    }
+
+    // ==========================================
+    // FINAL STUDY KIT
+    // ==========================================
+
+    const prompt = `
 You are an educational AI assistant.
 
-Analyze the following lecture transcript and create a study kit.
+Analyze the following lecture content and create a study kit.
 
 Return ONLY valid JSON in this exact structure:
 
@@ -302,91 +412,94 @@ Return ONLY valid JSON in this exact structure:
 }
 
 Create:
-- A clear summary
-- 5 useful flashcards
-- 5 multiple-choice quiz questions
+- A clear and well-structured summary
+- Exactly 5 useful flashcards
+- Exactly 5 multiple-choice quiz questions
+- Quiz questions must have exactly 4 options
+- The answer must exactly match one of the options
 
-Lecture transcript:
-${transcript}
+Use only the information provided in the lecture content.
+
+Lecture content:
+${finalTranscript}
 `;
 
+    let response;
 
-          //gemini modification
-       let response;
+    try {
+      // Try Gemini 3.6 Flash first
+      response = await callGeminiWithRetry(() =>
+        ai.models.generateContent({
+          model: "gemini-3.6-flash",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+          },
+        })
+      );
 
-try {
-  // Try Gemini 3.6 Flash first
-  response = await callGeminiWithRetry(() =>
-    ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-      },
-    })
-  );
+    } catch (error) {
+      if (error?.status === 503) {
+        console.warn(
+          "Gemini 3.6 Flash is overloaded. Trying Gemini 3.5 Flash-Lite..."
+        );
 
-} catch (error) {
-  if (error?.status === 503) {
-    console.warn(
-      "Gemini 3.6 Flash is overloaded. Trying Gemini 3.5 Flash-Lite..."
-    );
+        response = await callGeminiWithRetry(() =>
+          ai.models.generateContent({
+            model: "gemini-3.5-flash-lite",
+            contents: prompt,
+            config: {
+              responseMimeType: "application/json",
+            },
+          })
+        );
 
-    // Fallback model
-    response = await callGeminiWithRetry(() =>
-      ai.models.generateContent({
-        model: "gemini-3.5-flash-lite",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-        },
-      })
-    );
-
-  } else {
-    throw error;
-  }
-}
-
-        const text = response.text;
-
-        res.json({
-            success: true,
-            studyKit: text
-        });
-
-        } catch (error) {
-        console.error("Gemini error:", error);
-
-        // Gemini quota exhausted
-        if (error?.status === 429) {
-            return res.status(429).json({
-                success: false,
-                error: "Gemini API quota exhausted.",
-                message:
-                    "Lectra has reached the current Gemini API request limit. Please try again after the quota resets."
-            });
-        }
-
-        // Gemini temporarily unavailable
-        if (error?.status === 503) {
-            return res.status(503).json({
-                success: false,
-                error: "Gemini temporarily unavailable.",
-                message:
-                    "Gemini is temporarily overloaded. Please try again in a moment."
-            });
-        }
-
-        return res.status(500).json({
-            success: false,
-            error: "Failed to generate study kit.",
-            message:
-                "An unexpected error occurred while generating the study kit."
-        });
+      } else {
+        throw error;
+      }
     }
-});
 
+    const text = response.text;
+    
+
+    console.log("Study kit generated successfully.");
+
+    res.json({
+      success: true,
+      studyKit: text,
+    });
+
+  } catch (error) {
+    console.error("Gemini error:", error);
+
+    // Gemini quota exhausted
+    if (error?.status === 429) {
+      return res.status(429).json({
+        success: false,
+        error: "Gemini API quota exhausted.",
+        message:
+          "Lectra has reached the current Gemini API request limit. Please try again after the quota resets.",
+      });
+    }
+
+    // Gemini temporarily unavailable
+    if (error?.status === 503) {
+      return res.status(503).json({
+        success: false,
+        error: "Gemini temporarily unavailable.",
+        message:
+          "Gemini is temporarily overloaded. Please try again in a moment.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      error: "Failed to generate study kit.",
+      message:
+        "An unexpected error occurred while generating the study kit.",
+    });
+  }
+});
 
 const PORT = 5000;
 
