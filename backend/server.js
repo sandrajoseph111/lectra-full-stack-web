@@ -460,14 +460,25 @@ ${finalTranscript}
     }
 
     const text = response.text;
-    
 
-    console.log("Study kit generated successfully.");
+let studyKit;
 
-    res.json({
-      success: true,
-      studyKit: text,
-    });
+try {
+  studyKit = JSON.parse(text);
+} catch (error) {
+  console.error("Failed to parse Gemini study kit JSON.");
+
+  return res.status(500).json({
+    success: false,
+    error: "Invalid study kit format.",
+    message: "Gemini returned an invalid study kit.",
+  });
+}
+
+res.json({
+  success: true,
+  studyKit,
+});
 
   } catch (error) {
     console.error("Gemini error:", error);
