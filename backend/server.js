@@ -171,6 +171,89 @@ app.get("/api/study-kits/:email", async (req, res) => {
 });
 
 
+// Delete a study kit
+app.delete("/api/study-kits/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedStudyKit = await StudyKit.findByIdAndDelete(id);
+
+    if (!deletedStudyKit) {
+      return res.status(404).json({
+        success: false,
+        message: "Study kit not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Study kit deleted successfully.",
+    });
+
+  } catch (error) {
+    console.error("Delete study kit error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error while deleting study kit.",
+    });
+  }
+});
+
+// Rename a study kit
+app.put("/api/study-kits/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userEmail, title } = req.body;
+
+    if (!userEmail || !title) {
+      return res.status(400).json({
+        success: false,
+        message: "User email and title are required.",
+      });
+    }
+
+    const updatedStudyKit =
+      await StudyKit.findOneAndUpdate(
+        {
+          _id: id,
+          userEmail: userEmail,
+        },
+        {
+          title: title.trim(),
+        },
+        {
+          new: true,
+        }
+      );
+
+    if (!updatedStudyKit) {
+      return res.status(404).json({
+        success: false,
+        message: "Study kit not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Study kit renamed successfully.",
+      studyKit: updatedStudyKit,
+    });
+
+  } catch (error) {
+    console.error(
+      "Rename study kit error:",
+      error.message
+    );
+
+    res.status(500).json({
+      success: false,
+      message: "Server error while renaming study kit.",
+    });
+  }
+});
+
+
 
 
 
