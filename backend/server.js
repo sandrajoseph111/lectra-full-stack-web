@@ -501,6 +501,15 @@ Create:
 - Quiz questions must have exactly 4 options
 - The answer must exactly match one of the options
 
+FLASHCARD REQUIREMENTS:
+- Every flashcard answer must contain at least 2 meaningful sentences.
+- Each answer should explain the concept clearly, not just give a short definition.
+- Include important details or an example when supported by the lecture.
+- Keep answers relevant to the lecture content.
+- Do not use one-word or very short answers.
+- Each flashcard question should test one important concept.
+- Use only information provided in the lecture content.
+
 Use only the information provided in the lecture content.
 
 Lecture content:
